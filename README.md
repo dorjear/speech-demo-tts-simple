@@ -1,70 +1,141 @@
-# Getting Started with Create React App
+## No library required to build a Text-to-Speech component in React
+What we are building we need to use window.speechSynthesis
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Initial setup
+You can use any React boilerplate to get started. I will be using the Create React App boilerplate to create a new React app.
 
-## Available Scripts
+You can install it using the following command:
 
-In the project directory, you can run:
+    npx create-react-app text-to-speech
+Once the app is created, you can start the development server using the following command:
 
-### `npm start`
+    cd text-to-speech
+    yarn start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Creating the SimpleTextToSpeech component
+The first step is to create a new component called SimpleTextToSpeech that will read the content of our input. Let's create a file called SimpleTextToSpeech.js.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    import React, { useState, useEffect } from "react";
 
-### `npm test`
+    const SimpleTextToSpeech = ({ text }) => {
+    const [isPaused, setIsPaused] = useState(false);
+    const [utterance, setUtterance] = useState(null);
+    
+    useEffect(() => {
+    const synth = window.speechSynthesis;
+    const u = new SpeechSynthesisUtterance(text);
+    
+        setUtterance(u);
+    
+        return () => {
+          synth.cancel();
+        };
+    }, [text]);
+    
+    const handlePlay = () => {
+    const synth = window.speechSynthesis;
+    
+        if (isPaused) {
+          synth.resume();
+        }
+    
+        synth.speak(utterance);
+    
+        setIsPaused(false);
+    };
+    
+    const handlePause = () => {
+    const synth = window.speechSynthesis;
+    
+        synth.pause();
+    
+        setIsPaused(true);
+    };
+    
+    const handleStop = () => {
+    const synth = window.speechSynthesis;
+    
+        synth.cancel();
+    
+        setIsPaused(false);
+    };
+    
+    return (
+    <div>
+    <button onClick={handlePlay}>{isPaused ? "Resume" : "Play"}</button>
+    <button onClick={handlePause}>Pause</button>
+    <button onClick={handleStop}>Stop</button>
+    </div>
+    );
+    };
+    
+    export default SimpleTextToSpeech;
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This code defines a new functional component called SimpleTextToSpeech. The component takes the text prop as input and creates a new SpeechSynthesisUtterance object that contains the text to be spoken. The useEffect hook is used to initialise the utterance state and cancel any ongoing speech synthesis when the component is unmounted.
 
-### `npm run build`
+The component also defines three event handlers for playing, pausing, and stopping the speech synthesis. When the Play/Resume button is clicked, the speak method of the SpeechSynthesis interface is called to start/resume the speech synthesis. Similarly, the pause and cancel methods are called when the Pause and Stop buttons are clicked, respectively.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+In case you are curious what we save into utterance state, here is the output of the SpeechSynthesisUtterance object.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    SpeechSynthesisUtterance
+    text: "Text-to-speech feature is ..."
+    lang: ""
+    voice: null
+    volume: 1
+    rate: 1
+    pitch: 1
+    onstart: null
+    onend: null
+    onerror: null
+    onpause: null
+    onresume: null
+    onmark: null
+    onboundary: null
+    addEventListener: ƒ addEventListener() {}
+    dispatchEvent: ƒ dispatchEvent() {}
+    removeEventListener: ƒ removeEventListener() {}
+    <constructor>: "SpeechSynthesisUtterance"
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Usage of the Text-to-Speech component
+Okay, so now when we have a basic TextToSpeech component created, we can use it in our blog post.
 
-### `npm run eject`
+    import logo from './logo.svg';
+    import './App.css';
+    import React from "react";
+    import SimpleTextToSpeech from "./SimpleTextToSpeech";
+    
+    function App() {
+        const [text, setText] = React.useState("");
+    
+        return (
+            <div className="App">
+            <div className="group">
+            <textarea
+                rows="10"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+            ></textarea>
+            </div>
+            <div>
+            <h1>Simple TTS without extra library</h1>
+            <SimpleTextToSpeech text={text} />
+            <p>{text}</p>
+            </div>
+            </div>
+        );
+    }
+    
+    export default App;
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Adding voice, speed and pitch controls
+To add controls for changing the voice, speed, and pitch of the speech synthesis, we can create new state variables for each of these properties in our TextToSpeech component. We can then add input elements to allow the user to adjust these properties.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The code after adding above features will be here:
+https://github.com/dorjear/speech-demo-stt-fe-direct/blob/main/src/SpeechToTextComponent.js
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
+that’s a lot of changes to our initial code. So let’s discuss what happened here. We’ve added new state variables for voice, pitch, rate and volume and input elements for controls. We've also added a select element to allow the user to choose from the available voices.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+We’ve updated the handlePlay function to set the voice, rate, and pitch properties of the SpeechSynthesisUtterance object based on the current state of our component.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
